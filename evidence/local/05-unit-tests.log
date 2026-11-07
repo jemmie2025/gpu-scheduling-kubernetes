@@ -1,0 +1,14 @@
+test_dedicated_gpu_cost (test_gpu_cost_model.TestGPUCostModel) ... ok
+test_invalid_success_rate_rejected (test_gpu_cost_model.TestGPUCostModel) ... ok
+test_mig_gpu_cost (test_gpu_cost_model.TestGPUCostModel) ... ok
+test_multiple_nodes (test_gpu_cost_model.TestGPUCostModel) ... ok
+test_negative_price_rejected (test_gpu_cost_model.TestGPUCostModel) ... ok
+test_time_slicing_cost (test_gpu_cost_model.TestGPUCostModel) ... ok
+test_zero_duration_rejected (test_gpu_cost_model.TestGPUCostModel) ... ok
+test_zero_nodes_rejected (test_gpu_cost_model.TestGPUCostModel) ... ok
+test_zero_throughput_rejected (test_gpu_cost_model.TestGPUCostModel) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.001s
+
+OK

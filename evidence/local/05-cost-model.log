@@ -1,0 +1,9 @@
+GPU COST COMPARISON — ILLUSTRATIVE ASSUMPTIONS
+Same hypothetical host: $4/hour, 120 hours
+Throughput and success rates are assumptions, not measurements.
+
+Dedicated: $480.00 total | 6534 successful requests | $73.4619 per 1,000 successful requests
+MIG: $480.00 total | 9408 successful requests | $51.0204 per 1,000 successful requests
+Time-slicing: $480.00 total | 11880 successful requests | $40.4040 per 1,000 successful requests
+
+PASS: Results exported to evidence/local/05-cost-comparison.csv

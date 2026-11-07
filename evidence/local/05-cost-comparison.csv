@@ -1,0 +1,4 @@
+strategy,total_cost_usd,successful_requests,cost_per_1000_successful_usd
+Dedicated,480.0,6534.0,73.4619
+MIG,480.0,9408.0,51.0204
+Time-slicing,480.0,11880.0,40.404
