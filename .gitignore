@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.pem
+*.key
+kubeconfig
+kubeconfig.*
+
+# IDE and operating system
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Generated outputs and temporary files
+*.tmp
+*.bak
+*.log
+!evidence/**/*.log
