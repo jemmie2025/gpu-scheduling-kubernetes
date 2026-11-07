@@ -69,7 +69,7 @@ Node autoscaling operates separately from GPU resource allocation and requests i
 |---|---|---|---|
 | gpu-dedicated | Full GPU | nvidia.com/gpu | Training and large-model inference |
 | gpu-mig | MIG mixed strategy | nvidia.com/mig-1g.10gb | Multi-tenant inference |
-| gpu-shared | Time-slicing | nvidia.com/gpu | Lightweight inference |
+| gpu-shared | Time-slicing | nvidia.com/gpu.shared | Lightweight inference |
 
 The MIG resource is illustrative. Actual profile names depend on the GPU model and partition configuration.
 

@@ -1,137 +1,103 @@
 # GPU Scheduling in Kubernetes
 
-**GPU Resource Optimization | NVIDIA GPU Sharing | Kubernetes Autoscaling**
+**Advanced DevOps | NVIDIA GPU Sharing | GPU-Aware Autoscaling**
 
 ## Overview
 
-This project evaluates GPU scheduling and resource-sharing strategies in Kubernetes, focusing on efficient GPU allocation, workload isolation, scalability, and infrastructure cost optimization.
+A technical evaluation of GPU scheduling and resource sharing in Kubernetes, comparing dedicated GPU allocation, NVIDIA Multi-Instance GPU (MIG), and time-slicing for mixed AI workloads.
 
-The research compares dedicated GPU allocation, NVIDIA Multi-Instance GPU (MIG), and time-slicing to determine appropriate deployment strategies for AI inference, batch processing, and GPU-intensive workloads.
-
-The implementation design incorporates NVIDIA's Device Plugin, GPU-aware scheduling constraints, and node autoscaling through Karpenter or Cluster Autoscaler.
-
-## Objectives
-
-- Evaluate Kubernetes GPU resource discovery and scheduling.
-- Compare dedicated GPUs, MIG, and time-slicing.
-- Develop a workload-based GPU allocation decision matrix.
-- Design GPU node pools with appropriate labels, taints, and tolerations.
-- Evaluate GPU-aware node autoscaling strategies.
-- Model GPU capacity and infrastructure costs.
-- Provide reproducible configurations and validation evidence.
+The project delivers a workload-based decision matrix, hybrid scheduling architecture, Kubernetes reference configurations, and reproducible cost analysis.
 
 ## System Architecture
 
-The proposed architecture separates GPU workloads into dedicated, MIG-enabled, and time-sliced node pools.
-
 ```text
-                     AI / GPU Workloads
-                             |
-                     Kubernetes Scheduler
-                             |
-              +--------------+--------------+
-              |              |              |
-        Dedicated GPU      MIG GPU      Time-Sliced GPU
-          Node Pool       Node Pool        Node Pool
-              |              |              |
-        Full GPU Access  Hardware-Based    Shared GPU
-                          Partitioning     Access
-              |              |              |
-              +--------------+--------------+
-                             |
-                       GPU Hardware
+             AI / GPU Workloads
+                     |
+             Kubernetes Scheduler
+                     |
+       +-------------+-------------+
+       |             |             |
+   Dedicated GPU    MIG GPU     Shared GPU
+       Pool          Pool         Pool
+       |             |             |
+   Full Device    Hardware     Time-Slicing
+   Allocation     Partitions   Shared Access
+       |             |             |
+       +-------------+-------------+
+                     |
+                NVIDIA GPUs
 
-Supporting Components:
-- NVIDIA Device Plugin: Advertises GPU resources
-- NVIDIA GPU Operator: Manages GPU software components
-- Karpenter / Cluster Autoscaler: Scales GPU node capacity
+Supporting: NVIDIA Device Plugin, GPU Operator,
+            Karpenter / Cluster Autoscaler
 ```
 
-The NVIDIA Device Plugin advertises GPU resources to Kubernetes. Node labels, selectors, taints, tolerations, and resource requests control workload placement. Node autoscalers provision compatible GPU capacity where supported and configured.
+GPU resource requests, node selectors, taints, and tolerations determine workload placement. GPU-aware autoscaling manages compatible node capacity.
 
-Detailed design: [System Architecture](docs/architecture.md).
+[Architecture](docs/architecture.md) | [Autoscaling](docs/autoscaling.md)
 
-## GPU Allocation Strategies
+## Technical Implementation
 
-| Strategy | Isolation | Recommended Workload |
+| Strategy | Intended Workload | Resource |
 |---|---|---|
-| Dedicated GPU | Exclusive device allocation | Training and large-model inference |
-| NVIDIA MIG | Hardware-partitioned GPU resources | Predictable multi-tenant inference |
-| Time-Slicing | Shared GPU without memory isolation | Lightweight, bursty inference |
+| Dedicated GPU | Training and large-model inference | `nvidia.com/gpu` |
+| MIG | Partitioned multi-tenant inference | `nvidia.com/mig-1g.10gb` |
+| Time-slicing | Lightweight shared inference | `nvidia.com/gpu.shared` |
 
-MIG requires compatible NVIDIA hardware. Time-slicing increases access concurrency but does not guarantee proportional compute or memory capacity.
+Five Kubernetes YAML reference configurations cover GPU workloads, NVIDIA sharing, and Karpenter node provisioning.
 
-## Technology Stack
+[Configuration Guide](configs/README.md) | [Decision Matrix](docs/decision-matrix.md)
 
-| Technology | Purpose |
+## Verified Results
+
+| Validation | Result |
 |---|---|
-| Kubernetes | Container orchestration and scheduling |
-| NVIDIA Device Plugin | GPU resource discovery and allocation |
-| NVIDIA GPU Operator | GPU software lifecycle management |
-| NVIDIA MIG | Hardware GPU partitioning |
-| NVIDIA Time-Slicing | Shared GPU access |
-| Karpenter | Dynamic node provisioning |
-| Cluster Autoscaler | Node group capacity scaling |
-| Python | Cost modelling and automated validation |
-| YAML | Kubernetes configuration definitions |
+| Kubernetes YAML parsing and policy checks | 5 manifests passed |
+| Automated Python unit tests | 9 passed |
+| Cost-model execution and CSV export | Passed |
+
+### Illustrative Cost Comparison
+
+| Strategy | 120-hour Cost | Cost / 1,000 Successful Requests |
+|---|---:|---:|
+| Dedicated | $480 | $73.46 |
+| MIG | $480 | $51.02 |
+| Time-slicing | $480 | $40.40 |
+
+Cost inputs and throughput assumptions are hypothetical, not measured GPU benchmarks.
+
+[Cost Analysis](docs/cost-model.md) | [Validation Report](docs/validation.md)
+
+## Practical Evidence
+
+
+[Evidence Register](evidence/README.md) | [Practical Verification Guide](docs/practical-evidence.md)
 
 ## Repository Structure
 
 ```text
 gpu-scheduling-kubernetes/
-├── configs/                    # GPU scheduling configurations
-├── docs/
-│   ├── architecture.md         # System architecture
-│   ├── autoscaling.md          # GPU node autoscaling
-│   ├── cost-model.md           # Comparative cost analysis
-│   ├── decision-matrix.md      # GPU allocation evaluation
-│   ├── practical-evidence.md   # Practical experiments
-│   ├── references.md           # Technical references
-│   └── validation.md           # Verification procedures
+├── configs/          # Five Kubernetes manifests and guide
+├── docs/             # Research, architecture, cost and validation
 ├── evidence/
-│   ├── local/                  # Reproducible test outputs
-│   └── README.md               # Evidence register
-├── scripts/                    # Validation and analysis scripts
-├── tests/                      # Automated tests
+│   ├── local/        # Execution logs and CSV results
+│   └── README.md
+├── scripts/          # Python GPU cost model
+├── tests/            # Automated unit tests
 ├── .gitignore
 └── README.md
 ```
 
-## Validation Strategy
+## Reproduction
 
-Validation is organized into three categories:
+```bash
+python3 scripts/gpu_cost_model.py
+python3 -m unittest discover -s tests -v
+```
 
-1. **Static Validation:** Verify YAML syntax, GPU resource requests, scheduling constraints, and configuration consistency.
-2. **Offline Experiments:** Evaluate scheduling feasibility, deliberate failure scenarios, automated tests, and cost calculations.
-3. **Live-Cluster Validation:** Verify GPU Pod scheduling, resource allocation, and autoscaling behavior when authorized GPU infrastructure is available.
+The cost model and tests run locally with Python 3. GPU hardware is not required.
 
-Offline scheduling simulations are distinguished from actual Kubernetes scheduler execution.
+## Engineering Conclusion
 
-See [Practical Evidence](docs/practical-evidence.md) and [Validation](docs/validation.md).
+A hybrid approach is recommended: dedicated GPUs for performance-sensitive workloads, MIG for hardware-isolated partitioning on compatible GPUs, and time-slicing for workloads tolerant of shared execution.
 
-## Deliverables
-
-- GPU scheduling research and technical decision matrix.
-- Kubernetes GPU scheduling architecture.
-- Dedicated, MIG, and time-sliced GPU configuration examples.
-- GPU-aware autoscaling design.
-- Comparative cost model with documented assumptions.
-- Automated validation procedures and practical evidence.
-- Reproducible technical documentation.
-
-## References
-
-Technical decisions are based on official documentation:
-
-- [Kubernetes — Schedule GPUs](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/)
-- [NVIDIA — Kubernetes Device Plugin](https://github.com/NVIDIA/k8s-device-plugin)
-- [NVIDIA — MIG User Guide](https://docs.nvidia.com/datacenter/tesla/mig-user-guide/)
-- [NVIDIA — GPU Operator](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/)
-- [Karpenter Documentation](https://karpenter.sh/docs/)
-- [Kubernetes Cluster Autoscaler](https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler)
-
-## Project Status
-
-**In Development**
-
-Research, configurations, cost analysis, and practical validation are being completed and committed as independently reviewable units.
+**Validation scope:** Offline configuration checks and cost-model tests completed. Live GPU scheduling, MIG deployment, and autoscaling require compatible infrastructure.
